@@ -1,30 +1,43 @@
 import type { NextPage } from 'next';
+import Link from 'next/link';
+import useSWR from 'swr';
+import type { ChangeEvent } from 'react';
 import { useState } from 'react';
+
+import ModalNew from '../components/ModalNew';
 
 const PROJECT_NAME = 'Skulls In Love';
 
-const GIVEAWAY_1 = '#3';
-const GROUP_1 = ['taro', 'hanako', 'ichiro', 'yuria'];
-
-const GIVEAWAY_2 = '#9';
-const GROUP_2 = ['john', 'jane', 'bob', 'mary'];
-
 const Home: NextPage = () => {
-  const [winner1, setWinner1] = useState('');
-  const [winner2, setWinner2] = useState('');
+  const [selectedFile, setSelectedFile] = useState('');
+  const [winner, setWinner] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [isDrawing, setIsDrawing] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
+  const { data: slugs } = useSWR('/api/data');
+  const { data } = useSWR(selectedFile ? `/api/data/${selectedFile}` : null);
+
+  function handleOnChange(event: ChangeEvent<HTMLSelectElement>) {
+    setSelectedFile(event.target.value);
+    setWinner('');
+    setErrorMessage('');
+    setIsFinished(false);
+  }
+
   function raffle() {
-    setIsDrawing(true);
-    const handle1 = Math.floor(Math.random() * GROUP_1.length);
-    const handle2 = Math.floor(Math.random() * GROUP_2.length);
-    window.setTimeout(() => {
-      setWinner1(`@${GROUP_1[handle1]}`);
-      setWinner2(`@${GROUP_2[handle2]}`);
-      setIsDrawing(false);
-      setIsFinished(true);
-    }, 3 * 1000);
+    if (data && data.users.length > 0) {
+      setIsDrawing(true);
+
+      const handle = Math.floor(Math.random() * data.users.length);
+      window.setTimeout(() => {
+        setWinner(`@${data.users[handle]}`);
+        setIsDrawing(false);
+        setIsFinished(true);
+      }, 3 * 1000);
+    } else {
+      setErrorMessage('no entries yet');
+    }
   }
 
   return (
@@ -34,71 +47,101 @@ const Home: NextPage = () => {
           {PROJECT_NAME} Raffle
         </h1>
 
-        <div className="mb-4">
-          <h2 className="text-center text-xl mb-2">
-            The winner of{' '}
-            <span className="text-yellow-400">
-              {PROJECT_NAME} {GIVEAWAY_1}
-            </span>
-          </h2>
-          <div className="border border-blue-400 p-4 h-16 flex justify-center items-center max-w-xs mx-auto">
-            <span className="text-blue-400 font-bold">{winner1}</span>
-          </div>
-        </div>
+        {!slugs ? (
+          <div>loading...</div>
+        ) : (
+          <div className="flex justify-center items-center space-x-2">
+            <select
+              name="files"
+              id="file-select"
+              onChange={(e) => handleOnChange(e)}
+              className="text-gray-800"
+            >
+              <option value="">-- Please select a file --</option>
+              {slugs.map((slug: string, index: number) => (
+                <option key={index} value={slug}>
+                  {slug}
+                </option>
+              ))}
+            </select>
 
-        <div className="mb-8">
-          <h2 className="text-center text-xl mb-2">
-            The winner of{' '}
-            <span className="text-pink-400">
-              {PROJECT_NAME} {GIVEAWAY_2}
-            </span>
-          </h2>
-          <div className="border border-blue-400 p-4 h-16 flex justify-center items-center max-w-xs mx-auto">
-            <span className="text-blue-400 font-bold">{winner2}</span>
-          </div>
-        </div>
+            {selectedFile && (
+              <Link href={`/data/${selectedFile}`}>
+                <a>
+                  <button className="rounded px-2 py-1 bg-gray-700 hover:bg-gray-600 text-sm">
+                    Edit
+                  </button>
+                </a>
+              </Link>
+            )}
 
-        <div className="flex justify-center">
-          <button
-            type="button"
-            onClick={raffle}
-            disabled={isDrawing || isFinished ? true : false}
-            className={`flex justify-center items-center rounded px-4 py-2 w-40 ${
-              !isDrawing && !isFinished && 'bg-green-600 hover:bg-green-700'
-            }
+            <ModalNew />
+          </div>
+        )}
+
+        {data && (
+          <div className="mt-4">
+            <div className="mb-4">
+              <h2 className="text-center text-xl mb-2">
+                The winner of{' '}
+                <span className="text-yellow-400">
+                  {data.item ? data.item : '???'}
+                </span>
+              </h2>
+
+              <div className="border border-blue-400 p-4 h-16 flex justify-center items-center max-w-xs mx-auto">
+                {winner && (
+                  <span className="text-blue-400 font-bold">{winner}</span>
+                )}
+                {errorMessage && (
+                  <span className="text-red-400 font-bold">{errorMessage}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={raffle}
+                disabled={isDrawing || isFinished ? true : false}
+                className={`flex justify-center items-center rounded px-4 py-2 w-40 ${
+                  !isDrawing && !isFinished && 'bg-blue-600 hover:bg-blue-700'
+                }
               ${isDrawing && 'bg-red-600 cursor-not-allowed'}
               ${isFinished && 'bg-gray-600 cursor-not-allowed'}
               `}
-          >
-            {!isDrawing && !isFinished && 'Raffle Start'}
-            {isDrawing && (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                <span>Drawing...</span>
-              </>
-            )}
-            {isFinished && 'Raffle End'}
-          </button>
-        </div>
+              >
+                {!isDrawing && !isFinished && 'Raffle Start'}
+                {isDrawing && (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    <span>Drawing...</span>
+                  </>
+                )}
+                {isFinished && 'Raffle End'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
