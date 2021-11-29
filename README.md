@@ -1,5 +1,9 @@
 # A simple raffle app built with [Next.js](https://nextjs.org/)
 
+![Raffle](raffle.png)
+
+![Data](raffle-data.png)
+
 ## Running locally
 
 1. Clone this project:
