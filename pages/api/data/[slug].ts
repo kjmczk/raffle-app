@@ -11,7 +11,7 @@ export default function dataHandler(req: NextApiRequest, res: NextApiResponse) {
   const {
     method,
     query: { slug },
-    body: { newFileName, item, users },
+    body: { newFileName, title, items, users },
   } = req;
 
   switch (method) {
@@ -30,7 +30,7 @@ export default function dataHandler(req: NextApiRequest, res: NextApiResponse) {
       res.status(200).json({ newFileName });
       break;
     case 'PATCH':
-      addData(String(slug), { item, users });
+      addData(String(slug), { title, items, users });
       res.status(200).end();
       break;
     case 'DELETE':

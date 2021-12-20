@@ -7,7 +7,7 @@ export default function allDataHandler(
 ) {
   const {
     method,
-    body: { fileName, item, users },
+    body: { fileName, title, items, users },
   } = req;
 
   const slugs = getFileSlugs();
@@ -22,7 +22,7 @@ export default function allDataHandler(
           .status(400)
           .json({ error: `File ${fileName} Already Exists` });
       }
-      addData(fileName, { item, users });
+      addData(fileName, { title, items, users });
       res.status(200).json({ fileName });
       break;
     default:
