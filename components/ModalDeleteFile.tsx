@@ -46,7 +46,7 @@ export default function ModalDeleteFile() {
     <div>
       <button
         onClick={openModal}
-        className="rounded px-2 py-1 bg-red-600 hover:bg-red-700"
+        className="rounded px-2 py-1 bg-red-600 hover:bg-red-700 text-gray-200"
       >
         Delete File
       </button>

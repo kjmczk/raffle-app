@@ -64,7 +64,7 @@ export default function ModalRenameFile() {
     <div>
       <button
         onClick={openModal}
-        className="rounded px-2 py-1 bg-gray-700 hover:bg-gray-600"
+        className="rounded px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300"
       >
         Rename File
       </button>
