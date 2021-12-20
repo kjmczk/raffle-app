@@ -10,8 +10,8 @@ const PROJECT_NAME = 'Skulls In Love';
 
 const Home: NextPage = () => {
   const [selectedFile, setSelectedFile] = useState('');
-  const [winner, setWinner] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [winners, setWinners] = useState<string[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
@@ -20,30 +20,46 @@ const Home: NextPage = () => {
 
   function handleOnChange(event: ChangeEvent<HTMLSelectElement>) {
     setSelectedFile(event.target.value);
-    setWinner('');
+    setWinners([]);
     setErrorMessage('');
     setIsFinished(false);
   }
 
+  function getRandom(arr: string[], n: number) {
+    let result = new Array(n),
+      len = arr.length,
+      taken = new Array(len);
+    if (n > len)
+      throw new RangeError('getRandom: more elements taken than available');
+    while (n--) {
+      let x = Math.floor(Math.random() * len);
+      result[n] = arr[x in taken ? taken[x] : x];
+      taken[x] = --len in taken ? taken[len] : len;
+    }
+    return result;
+  }
+
   function raffle() {
-    if (data && data.users.length > 0) {
+    if (data.users.length === 0) {
+      setErrorMessage('no entries yet');
+    } else if (data.items.length > data.users.length) {
+      setErrorMessage('There are fewer users than items');
+    } else {
       setIsDrawing(true);
 
-      const handle = Math.floor(Math.random() * data.users.length);
+      const handles = getRandom(data.users, data.items.length);
       window.setTimeout(() => {
-        setWinner(`@${data.users[handle]}`);
+        setWinners(handles);
         setIsDrawing(false);
         setIsFinished(true);
       }, 3 * 1000);
-    } else {
-      setErrorMessage('no entries yet');
     }
   }
 
   return (
     <div className="max-w-lg mx-auto px-4">
-      <div className="flex flex-col justify-center h-screen">
-        <h1 className="text-center text-4xl font-bold mb-8">
+      <div className="flex flex-col my-8">
+        <h1 className="text-center text-4xl text-gray-500 font-bold mb-8">
           {PROJECT_NAME} Raffle
         </h1>
 
@@ -55,7 +71,7 @@ const Home: NextPage = () => {
               name="files"
               id="file-select"
               onChange={(e) => handleOnChange(e)}
-              className="text-gray-800"
+              className="text-gray-800 bg-gray-200"
             >
               <option value="">-- Please select a file --</option>
               {slugs.map((slug: string, index: number) => (
@@ -68,7 +84,7 @@ const Home: NextPage = () => {
             {selectedFile && (
               <Link href={`/data/${selectedFile}`}>
                 <a>
-                  <button className="rounded px-2 py-1 bg-gray-700 hover:bg-gray-600 text-sm">
+                  <button className="rounded px-2 py-1 bg-gray-600 hover:bg-gray-700 text-sm text-gray-200">
                     Edit
                   </button>
                 </a>
@@ -80,67 +96,112 @@ const Home: NextPage = () => {
         )}
 
         {data && (
-          <div className="mt-4">
-            <div className="mb-4">
-              <h2 className="text-center text-xl mb-2">
-                The winner of{' '}
-                <span className="text-yellow-400">
-                  {data.item ? data.item : '???'}
-                </span>
-              </h2>
-
-              <div className="border border-blue-400 p-4 h-16 flex justify-center items-center max-w-xs mx-auto">
-                {winner && (
-                  <span className="text-blue-400 font-bold">{winner}</span>
-                )}
-                {errorMessage && (
-                  <span className="text-red-400 font-bold">{errorMessage}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={raffle}
-                disabled={isDrawing || isFinished ? true : false}
-                className={`flex justify-center items-center rounded px-4 py-2 w-40 ${
-                  !isDrawing && !isFinished && 'bg-blue-600 hover:bg-blue-700'
-                }
-              ${isDrawing && 'bg-red-600 cursor-not-allowed'}
-              ${isFinished && 'bg-gray-600 cursor-not-allowed'}
+          <>
+            {data.items.length > 0 ? (
+              <div className="pt-8">
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={raffle}
+                    disabled={isDrawing || isFinished ? true : false}
+                    className={`flex justify-center items-center rounded px-4 py-2 w-40 ${
+                      !isDrawing &&
+                      !isFinished &&
+                      data.users.length > 0 &&
+                      data.items.length <= data.users.length &&
+                      'bg-blue-600 hover:bg-blue-700 text-gray-100'
+                    }
+              ${isDrawing && 'bg-red-600 text-gray-100 cursor-not-allowed'}
+              ${
+                (isFinished ||
+                  data.users.length < 1 ||
+                  data.items.length > data.users.length) &&
+                'bg-gray-700 cursor-not-allowed'
+              }
               `}
-              >
-                {!isDrawing && !isFinished && 'Raffle Start'}
-                {isDrawing && (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    <span>Drawing...</span>
-                  </>
+                  >
+                    {!isDrawing && !isFinished && 'Raffle Start'}
+                    {isDrawing && (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span>Drawing...</span>
+                      </>
+                    )}
+                    {isFinished && 'Raffle End'}
+                  </button>
+                </div>
+
+                <p className="text-center mt-2">
+                  Entry Users: {data.users.length}
+                </p>
+
+                {errorMessage && (
+                  <p className="text-red-500 text-center mt-2">
+                    {errorMessage}
+                  </p>
                 )}
-                {isFinished && 'Raffle End'}
-              </button>
-            </div>
-          </div>
+
+                <h2 className="text-center text-xl text-gray-300 font-bold uppercase mt-6 mb-2">
+                  {data.title} {data.users.length > 1 ? 'winners' : 'winner'}
+                </h2>
+
+                <div className="border border-gray-600 flex justify-around items-center max-w-lg mx-auto">
+                  <ul
+                    className={`${
+                      winners.length > 0 ? 'w-1/3' : 'w-full'
+                    } divide-y divide-gray-600`}
+                  >
+                    {data.items.map((item: string, i: number) => (
+                      <li
+                        key={i}
+                        className={`${
+                          i % 2 === 0 && 'bg-gray-800'
+                        } text-yellow-400 py-2 px-4 truncate`}
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {winners.length > 0 && (
+                    <ul className="w-2/3 text-center divide-y divide-gray-600">
+                      {winners.map((winner, i) => (
+                        <li
+                          key={i}
+                          className={`${
+                            i % 2 === 0 && 'bg-gray-800'
+                          } text-blue-400 py-2 px-4 truncate`}
+                        >
+                          @{winner}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center text-gray-500 my-8">no items</div>
+            )}
+          </>
         )}
       </div>
     </div>
