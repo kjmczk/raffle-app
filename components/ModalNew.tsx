@@ -45,7 +45,8 @@ export default function ModalNew() {
         },
         body: JSON.stringify({
           fileName: event.currentTarget.fileName.value,
-          item: '',
+          title: event.currentTarget.fileName.value,
+          items: [],
           users: [],
         }),
       });
@@ -66,7 +67,7 @@ export default function ModalNew() {
     <div>
       <button
         onClick={openModal}
-        className="rounded px-2 py-1 bg-green-600 hover:bg-green-700 text-sm"
+        className="rounded px-2 py-1 bg-green-600 hover:bg-green-700 text-sm text-gray-100"
       >
         New
       </button>
