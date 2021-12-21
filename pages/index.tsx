@@ -2,16 +2,19 @@ import type { NextPage } from 'next';
 import Link from 'next/link';
 import useSWR from 'swr';
 import type { ChangeEvent } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { FaAngleLeft, FaAngleRight } from 'react-icons/fa';
 
 import ModalNew from '../components/ModalNew';
-
-const PROJECT_NAME = 'Skulls In Love';
+import PaginatedWinners from '../components/PaginatedWinners';
+import { PROJECT_NAME, PAGE_SIZE } from '../utils/constants';
 
 const Home: NextPage = () => {
   const [selectedFile, setSelectedFile] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [winners, setWinners] = useState<string[]>([]);
+  const [pageIndex, setPageIndex] = useState(1);
+  const [pageCount, setPageCount] = useState(0);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
@@ -56,9 +59,25 @@ const Home: NextPage = () => {
     }
   }
 
+  function handlePreviousPage() {
+    if (pageIndex === 1) return;
+    setPageIndex(pageIndex - 1);
+  }
+
+  function handleNextPage() {
+    if (pageIndex === pageCount) return;
+    setPageIndex(pageIndex + 1);
+  }
+
+  useEffect(() => {
+    if (data) {
+      setPageCount(Math.ceil(data.items.length / PAGE_SIZE));
+    }
+  }, [data]);
+
   return (
-    <div className="max-w-lg mx-auto px-4">
-      <div className="flex flex-col my-8">
+    <div className="max-w-sm mx-auto px-4">
+      <div className="h-screen flex flex-col justify-center">
         <h1 className="text-center text-4xl text-gray-500 font-bold mb-8">
           {PROJECT_NAME} Raffle
         </h1>
@@ -164,38 +183,42 @@ const Home: NextPage = () => {
                   {data.title} {data.users.length > 1 ? 'winners' : 'winner'}
                 </h2>
 
-                <div className="border border-gray-600 flex justify-around items-center max-w-lg mx-auto">
-                  <ul
+                <PaginatedWinners
+                  items={data.items}
+                  winners={winners}
+                  index={pageIndex}
+                />
+                <div className="hidden">
+                  <PaginatedWinners
+                    items={data.items}
+                    winners={winners}
+                    index={pageIndex + 1}
+                  />
+                </div>
+                <div className="flex justify-between py-2">
+                  <button
+                    onClick={handlePreviousPage}
                     className={`${
-                      winners.length > 0 ? 'w-1/3' : 'w-full'
-                    } divide-y divide-gray-600`}
+                      pageIndex === 1 && 'text-gray-600 cursor-not-allowed'
+                    } inline-flex items-center space-x-1`}
                   >
-                    {data.items.map((item: string, i: number) => (
-                      <li
-                        key={i}
-                        className={`${
-                          i % 2 === 0 && 'bg-gray-800'
-                        } text-yellow-400 py-2 px-4 truncate`}
-                      >
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {winners.length > 0 && (
-                    <ul className="w-2/3 text-center divide-y divide-gray-600">
-                      {winners.map((winner, i) => (
-                        <li
-                          key={i}
-                          className={`${
-                            i % 2 === 0 && 'bg-gray-800'
-                          } text-blue-400 py-2 px-4 truncate`}
-                        >
-                          @{winner}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                    <span>
+                      <FaAngleLeft />
+                    </span>
+                    <span>Previous</span>
+                  </button>
+                  <button
+                    onClick={handleNextPage}
+                    className={`${
+                      pageIndex === pageCount &&
+                      'text-gray-600 cursor-not-allowed'
+                    } inline-flex items-center space-x-1`}
+                  >
+                    <span>Next</span>
+                    <span>
+                      <FaAngleRight />
+                    </span>
+                  </button>
                 </div>
               </div>
             ) : (
