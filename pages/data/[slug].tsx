@@ -153,7 +153,7 @@ export default function Data() {
       <div className="flex space-x-4 mb-2">
         <form onSubmit={handleAddItem}>
           <label htmlFor="newItem" className="block text-sm mb-2">
-            Enter the item to add:
+            New Item:
           </label>
           <input
             type="text"
@@ -170,13 +170,13 @@ export default function Data() {
       </div>
 
       <div className="mb-6">
-        <div className="">
+        <>
           {data.items.length > 0 ? (
-            <div className="space-x-2">
+            <>
               {data.items.map((item: string, i: number) => (
                 <span
                   key={i}
-                  className="inline-flex items-center border border-gray-500 rounded px-2"
+                  className="inline-flex items-center border border-gray-500 rounded px-2 m-1"
                 >
                   <span className="text-gray-300 font-bold mr-2">{item}</span>
                   <button onClick={() => handleRemoveItem(item)}>
@@ -184,18 +184,18 @@ export default function Data() {
                   </button>
                 </span>
               ))}
-            </div>
+            </>
           ) : (
             <span className="italic text-gray-500">no items</span>
           )}
-        </div>
+        </>
       </div>
 
       <div>
         <div className="flex justify-between items-end space-x-4 mb-2">
           <form onSubmit={handleAddUser}>
             <label htmlFor="newUser" className="block text-sm mb-2">
-              Enter the user to add:
+              New User:
             </label>
             <input
               type="text"
