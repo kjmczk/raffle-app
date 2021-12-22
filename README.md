@@ -1,6 +1,12 @@
 # A simple raffle app built with [Next.js](https://nextjs.org/)
 
+**The Raffle App is a tool for managing giveaway participants and randomly (fairly) picking up winners.**
+
+Raffle screen:
+
 ![Raffle](raffle.png)
+
+Management screen:
 
 ![Data](raffle-data.png)
 
